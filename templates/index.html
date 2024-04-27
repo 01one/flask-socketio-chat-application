@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Private Chat Prototype</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+    
+</head>
+<body>
+    <h1>Private Chat Prototype</h1>
+    <p>Your Unique Key: <span id="uniqueKey"></span></p>
+    <input type="text" id="friendKey" placeholder="Enter Friend's Key"><br>
+    <button onclick="startChat()">Start Chat</button><br>
+    <div id="chat"></div>
+    <div>
+        <input type="text" id="messageInput" placeholder="Enter your message">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const socket = io();
+
+        // Store the friend's key for sending messages
+        let friendKey = '';
+
+        // Listen for the 'key_assigned' event to display the assigned key
+        socket.on('key_assigned', (data) => {
+            const uniqueKeySpan = document.getElementById('uniqueKey');
+            uniqueKeySpan.textContent = data.key;
+            console.log(data.key);
+        });
+
+
+        function startChat() {
+            friendKey = document.getElementById('friendKey').value;
+            const message = "Hello, let's chat!";
+            socket.emit('send_message', { key: friendKey, message: message });
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            if (friendKey && message) {
+                socket.emit('send_message', { key: friendKey, message: message });
+                const chatDiv = document.getElementById('chat');
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = `You: ${message}`;
+                chatDiv.appendChild(messageDiv);
+            }
+        }
+
+        socket.on('receive_message', (data) => {
+            const chatDiv = document.getElementById('chat');
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `Friend: ${data.message}`;
+            chatDiv.appendChild(messageDiv);
+        });
+
+
+    </script>
+</body>
+</html>
